@@ -1,12 +1,16 @@
 Attribute VB_Name = "Module5"
+Option Explicit
+
+'This Sub formats data of finished file and makes it look better
 Sub dataFormat(ByRef src As Workbook)
 
-' dataFormat Macro
+'   FUNCTIONAL PART
 
-    src.Activate
-    ActiveSheet.UsedRange.EntireRow.AutoFit
-    ActiveSheet.UsedRange.EntireColumn.AutoFit
-    ActiveSheet.UsedRange.HorizontalAlignment = xlCenter
+    With ActiveSheet.UsedRange
+        .EntireRow.AutoFit
+        .EntireColumn.AutoFit
+        .HorizontalAlignment = xlCenter
+    End With
     'Adjusts height and weight of all active cells in worksheet
 
     src.Close True

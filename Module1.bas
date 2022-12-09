@@ -1,131 +1,74 @@
 Attribute VB_Name = "Module1"
-'   MAIN FUNCTION
-' -------------------
-'
-' First you need to save csv limits to xlsx
-'
-'   LINES TO CHANGE
-'
-'       Module1:
-'   - Sub openAllWorkbooks
-'       -> line 57 change specific cable testlog's directory to your own
-'
-'       Module2:
-'   - Sub conversion
-'       -> line 16 change output xlsx files folder
-'
-'       Module4:
-'   - Sub limitsAdd
-'       -> lines 29-31 change limit files' paths to your own
-'
-'       Module5:
-'   - Sub dataFormat
-'       -> line
-'
+Option Explicit                         'It requires to always define variable
 
+'   PUBLIC VARIABLES
+
+Public measurementType As String        'Keeps type of measurement, assigned and used in here and used in Module4.limitsAdd
+Public maxCols As Integer               'Counts used columns to find first empty, values assigned and used in Module3.deleteRedundantData
+                                        'and used in Module4.limitsAdd
+Public measurementFileName As String    'Gets value from Module2.conversion and is used in Module3.deleteRedundantData
+
+'This is the main Sub, it searches for specified files and opens them, later on it calls other Subs from different Modules
 Sub openAllWorkbooks()
 
-    Application.DisplayAlerts = False
-    Application.ScreenUpdating = False
-    Application.EnableEvents = False
+    ApplicationOptimization (True)
 
-' openAllWorkbooks Macro
+'   VARIABLES
     
-    Dim vFiles As Variant
-    Dim vFile As Variant
-    'Variables that store temporary names of files
-    
-    Dim testDirectory As String
-    'Folder path where are keysight measurements
-    
-    Dim measurementFileName As String
-    'Name of converted filename from conversion Sub
-    
-    Dim measurementNumber As Integer
-    'Argument for limitsAdd Sub
-    
+    Dim vFiles, vFile As Variant        'Variables that store temporary names of files that are searched
+    Dim testDirectory As String         'Folder path where are keysight measurements
     Dim src As Workbook
-    'For workbooks creation without opening them
+
+'   FUNCTIONAL PART
     
-    Dim limitSrc As Workbook
-    'For limit workbooks creation without opening them
-    
-    Dim buff As Integer
-    Dim sameLimit As Boolean
-    Dim count As Integer
-    'Assigns current file with specified type of measurement, has information if it is file with same type of measurement, counts files
-    
-        
-        
     testDirectory = "C:\Users\mateup3\OneDrive - kochind.com\Documents\2. FLUKE TESTS\ORIENT DOUBLE JACKET C6 U_UTP\100m test\"
     'Change directory for different cables tests
     
     vFiles = enumerateFiles(testDirectory, "csv")
-    'It calls a public function required to go through all subfolders to files with csv extension
-    
-
-    buff = 0
-    sameLimit = True
-    count = 0
-    'Start values
+    'It calls a  function required to go through all subfolders to files with csv extension
     
     For Each vFile In vFiles
         
         If (InStr(Len(testDirectory), vFile, "il")) <> 0 Then
 
-            measurementNumber = 1
+            measurementType = "il"
             Set src = Workbooks.Open(vFile, True, True)
             'Opens the source excel workbook in "read only mode"
             'It works faster than opening workbooks
         
         ElseIf (InStr(Len(testDirectory), vFile, "next")) <> 0 Then
 
-            measurementNumber = 2
+            measurementType = "next"
             Set src = Workbooks.Open(vFile, True, True)
         
         ElseIf (InStr(Len(testDirectory), vFile, "rl")) <> 0 Then
 
-            measurementNumber = 3
+            measurementType = "rl"
             Set src = Workbooks.Open(vFile, True, True)
             
         End If
         'Checks if csv files are ones we want to actually open and operate on them
         
-        If (count <> 0) Then
-            If (buff <> measurementNumber) Then
-                sameLimit = False
-            Else
-                buff = measurementNumber
-                sameLimit = True
-            End If
-        End If
-        'If it is first file, ommit it, if not check if previous file had same type of measurement
+        Call Module2.conversion
         
-        Call Module2.conversion(CStr(vFile), measurementFileName)
-        'Converts file from csv to xlsx
-        
-        If (measurementNumber = 1 Or measurementNumber = 2 Or measurementNumber = 3) Then
-            
-            count = count + 1
-            'Counts how many files where opened
-            
-            Call Module3.deleteRedundantData(src, measurementFileName)
-            Call Module4.limitsAdd(measurementNumber, measurementFileName, sameLimit, count, limitSrc)
+        If (measurementType = "il" Or measurementType = "next" Or measurementType = "rl") Then
+            Call Module3.deleteRedundantData
+            Call Module4.limitsAdd
             Call Module5.dataFormat(src)
-        
         End If
-        'Calling Subs if found proper csv with measurements
+        'Calling Subs if found proper file with measurements
         
     Next vFile
     'Loops through all of csv files, assigning numbers to corresponding measurements
     
-    Application.DisplayAlerts = True
-    Application.ScreenUpdating = True
-    Application.EnableEvents = True
+    ApplicationOptimization (False)
+    
+    MsgBox "Program finished with success.", vbOKOnly
+    'Indicates that program finished its job and there was no error
 
 End Sub
 
-' Don't change anything here
+' Function that searches through folders and subfolders
 
 Public Function enumerateFiles(sDirectory As String, _
             Optional sFileSpec As String = "*", _
@@ -137,6 +80,26 @@ Public Function enumerateFiles(sDirectory As String, _
 
 End Function
 
+' Function that speeds up code
 
-
-
+Public Function ApplicationOptimization(BOOLEAN_TRIGGER As Boolean)
+    With Application
+        Select Case BOOLEAN_TRIGGER
+            Case True
+                .ScreenUpdating = False
+                .DisplayStatusBar = False
+                .EnableEvents = False
+                .Calculation = xlCalculationManual
+            Case False
+                .ScreenUpdating = True
+                .DisplayStatusBar = True
+                .EnableEvents = True
+                .Calculation = xlCalculationAutomatic
+        End Select
+    End With
+    If (BOOLEAN_TRIGGER = True) Then
+        ActiveSheet.DisplayPageBreaks = False
+    ElseIf (BOOLEAN_TRIGGER = False) Then
+        ActiveSheet.DisplayPageBreaks = True
+    End If
+End Function

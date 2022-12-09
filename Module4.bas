@@ -1,80 +1,84 @@
 Attribute VB_Name = "Module4"
-Sub limitsAdd(limitNumber As Integer, measurementFileName As String, sameLimit As Boolean, count As Integer, ByRef limitSrc As Workbook)
+Option Explicit
 
-' limitsAdd Macro
+'This Sub adds limits from formula to the spreadsheet
+Sub limitsAdd()
 
-    Dim rlLimitPath As String
-    Dim ilLimitPath As String
-    Dim nextLimitPath As String
-    'Paths where limits are saved
+'   VARIABLES
     
-    Dim limitFileName As String
-    'Limit file name without extension
+    Dim cell As Range
+    'Sets range to update values of frequency
     
-    Dim currLimitPath As String
-    'Assigned one of above limits depending on measurements
+'   FUNCTIONAL PART
     
-    Dim maxCols As Integer
-    'Checks how many columns are used
+    Cells(7, 1).Value = "Frequency(MHz)"
+    'Correct title from Frequency(Hz) to Frequency(MHz)
     
+    For Each cell In Range("A8:A" + CStr(Cells(Rows.count, 1).End(xlUp).Row - 1))
+        cell.Value = cell.Value / 1000000
+    Next
+    'Divide values to have MHz units
     
+    Cells(7, maxCols + 1).Value = "Limit(DB)"
+    'Set title in the new column
     
-    If (sameLimit = False) Then
-        limitSrc.Close False
-        Set limitSrc = Nothing
-    End If
-    'It closes file with limits and doesn't save it when file with measurements changed to different type
-        
-    maxCols = ActiveSheet.UsedRange.Columns.count
+    Select Case measurementType
+        Case "il": Call ilLimit
+        Case "next": Call nextLimit
+        Case "rl": Call rlLimit
+    End Select
+    'Assigned limit according to measurementType
     
-    ilLimitPath = "C:\Users\mateup3\OneDrive - kochind.com\Documents\3. 100m test limits\C6\Insertion Loss\Insertion Loss Limit C6.xlsx"
-    nextLimitPath = "C:\Users\mateup3\OneDrive - kochind.com\Documents\3. 100m test limits\C6\NEXT\NEXT_LIMIT_C6.xlsx"
-    rlLimitPath = "C:\Users\mateup3\OneDrive - kochind.com\Documents\3. 100m test limits\C6\Return Loss\Return Loss Limit C6.xlsx"
-    'Change only when limits files' directory changes
-    
-    If limitNumber = 1 Then
-        currLimitPath = ilLimitPath
-    ElseIf limitNumber = 2 Then
-        currLimitPath = nextLimitPath
-    ElseIf limitNumber = 3 Then
-        currLimitPath = rlLimitPath
-    End If
-    'Assigned limit according to measurement, limitNumber is given from Module2.openAllWorkbooks
-
-    limitFileName = Replace(Right(currLimitPath, Len(currLimitPath) - InStrRev(currLimitPath, "\")), ".xlsx", "")
-    'It cuts string from right side till meets "\" sign,
-    'counts from left side so it is required to deduct length of currLimitPath
-    'and then replaces extension with nothing to have clear file name
-    
-     On Error GoTo ErrHandler
-    
-        If (sameLimit = False Or count = 1) Then
-            Set limitSrc = Workbooks.Open(currLimitPath, True, True)
-        End If
-        'It opens the source excel workbook in "read only mode" with limits when there is a file with new type of measurement
-        
-        Workbooks(limitFileName).Worksheets(limitFileName).Range("A1:E14").Copy _
-        Workbooks(measurementFileName).Worksheets(measurementFileName).Cells(5, maxCols + 2)
-        'Copy data from source to the destination workbook
-        'Opens workbook with limits and copy values to workbook with measurements to the
-        'second empty column
-        
-        If (count = 10) Then
-            limitSrc.Close False
-            Set limitSrc = Nothing
-        End If
-        'If it is last file with measurements (count = 10) then close workbook with limits and don't save it
-    
-ErrHandler:
-'Shows if any error occurs
-
 End Sub
 
+Sub ilLimit()
 
+'   Variables
 
-
-
-
-
+    Dim ilFormula As String
     
+'   FUNCTIONAL PART
+    
+    ilFormula = "=-(1.808*SQRT(A8)+0.017*A8+0.2/SQRT(A8))"
+    
+    With Range(Cells(8, maxCols + 1), Cells(Cells(Rows.count, 1).End(xlUp).Row - 1, maxCols + 1))
+        .formula = ilFormula
+        .FillDown
+    End With
+    'It fills the whole range with that formula, A8 value changes automatically for the next row, that's not absolute reference
+        
+End Sub
 
+Sub nextLimit()
+
+'   VARIABLES
+
+    Dim nextFormula As String
+    
+'   FUNCTIONAL PART
+    
+    nextFormula = "=-(44.3-15*LOG10(A8/100))"
+    
+    With Range(Cells(8, maxCols + 1), Cells(Cells(Rows.count, 1).End(xlUp).Row - 1, maxCols + 1))
+        .formula = nextFormula
+        .FillDown
+    End With
+    
+End Sub
+
+Sub rlLimit()
+
+'   VARIABLES
+
+    Dim rlFormula As String
+    
+'   FUNCTIONAL PART
+    
+    rlFormula = "=-IF(AND(A8>=1,A8<10),20+5*LOG10(A8),IF(AND(A8>=10,A8<20), 25, 25-7*LOG10(A8/20)))"
+    
+    With Range(Cells(8, maxCols + 1), Cells(Cells(Rows.count, 1).End(xlUp).Row - 1, maxCols + 1))
+        .formula = rlFormula
+        .FillDown
+    End With
+    
+End Sub

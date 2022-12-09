@@ -1,30 +1,30 @@
 Attribute VB_Name = "Module2"
-Sub conversion(filePathCSV As String, ByRef measurementFileName As String)
+Option Explicit
 
-' conversion Macro
+'This Sub converts file from csv to xlsx
+Sub conversion()
 
-    Dim folderPathXLSX As String
-    'Path where output files will be saved
-    
-    Dim filePathXLSX As String
-    'Name of file path saved as xlsx
+'   VARIABLES
 
-    Dim fileNameExt As String
-    'Name of current file with extension
+    Dim folderPathXLSX As String    'Path where output files will be saved
+    Dim filePathXLSX As String      'Name of file path saved as xlsx
+    Dim fileNameExt As String       'Name of current file with extension
     
-    
+'   FUNCTIONAL PART
     
     folderPathXLSX = "C:\Users\mateup3\OneDrive - kochind.com\Documents\2. FLUKE TESTS\ORIENT DOUBLE JACKET C6 U_UTP\100m test\!MADE EXCEL WORKSHEETS\"
     'Change folder path depending where you want to save xlsx output files
     
     fileNameExt = ActiveWorkbook.Name
+    'It gets name of active workbook
     filePathXLSX = folderPathXLSX + Replace(fileNameExt, "csv", "xlsx")
+    
+    measurementFileName = Replace(fileNameExt, ".csv", "")
+    'Bare name without extension
     
     ActiveWorkbook.SaveAs fileName:=filePathXLSX, _
     FileFormat:=xlOpenXMLWorkbook, CreateBackup:=False
     'It saves workbook as xlsx
-
-    measurementFileName = Replace(fileNameExt, ".csv", "")
 
 End Sub
 
