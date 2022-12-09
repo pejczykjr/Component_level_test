@@ -27,3 +27,4 @@ Exclusive Licence
 
 Copyright (c) 2022 Molex Connected Enterprise Solutions   
 Author: [Mateusz Pieczykolan](https://github.com/pejczykjr)
+
