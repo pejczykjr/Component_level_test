@@ -14,24 +14,23 @@ Sub deleteRedundantData()
     maxCols = ActiveSheet.UsedRange.Columns.count
     
     If (InStr(1, measurementFileName, "il")) <> 0 Then
-    
-        Call Module3.ilAll(i)
+        Call ilAll(i)
         
     ElseIf (InStr(1, measurementFileName, "next")) <> 0 Then
     
         If InStr(1, measurementFileName, "orange") <> 0 Then
-            Call Module3.nextOrange(i)
+            Call nextOrange(i)
         ElseIf InStr(1, measurementFileName, "brown") <> 0 Then
-            Call Module3.nextBrown(i)
+            Call nextBrown(i)
         ElseIf InStr(1, measurementFileName, "green") <> 0 Then
-            Call Module3.nextGreen(i)
+            Call nextGreen(i)
         ElseIf InStr(1, measurementFileName, "blue") <> 0 Then
-            Call Module3.nextBlue(i)
+            Call nextBlue(i)
         End If
         
     ElseIf (InStr(1, measurementFileName, "rl")) <> 0 Then
     
-        Call Module3.rlAll(i)
+        Call rlAll(i)
         
     End If
     'Function where it chooses type of measurement and erases specified redundant data
@@ -42,6 +41,8 @@ Sub deleteRedundantData()
 End Sub
 
 Sub ilAll(i As Integer)
+
+ Dim cell As Range
     
 '   FUNCTIONAL PART
     
@@ -49,6 +50,11 @@ Sub ilAll(i As Integer)
         If ActiveSheet.Cells(7, i).Value <> "S21(DB)" Then ActiveSheet.Cells(7, i).EntireColumn.Delete Shift:=xlToLeft
     Next
     'From last column go to second and check conditions
+
+    For Each cell In Range("B8:B" + CStr(Cells(Rows.count, 1).End(xlUp).Row - 1))
+        cell.Value = cell.Value * -1
+    Next
+    'Change values to positive S21 (test conducted based on positive limit)
 
 End Sub
 

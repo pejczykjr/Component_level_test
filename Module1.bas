@@ -4,9 +4,9 @@ Option Explicit                         'It requires to always define variable
 '   PUBLIC VARIABLES
 
 Public measurementType As String        'Keeps type of measurement, assigned and used in here and used in Module4.limitsAdd
-Public maxCols As Integer               'Counts used columns to find first empty, values assigned and used in Module3.deleteRedundantData
-                                        'and used in Module4.limitsAdd
 Public measurementFileName As String    'Gets value from Module2.conversion and is used in Module3.deleteRedundantData
+Public maxCols As Integer                  'Counts used columns to find first empty, values assigned and used in Module3.deleteRedundantData
+                                        'and used in Module4.limitsAdd
 
 'This is the main Sub, it searches for specified files and opens them, later on it calls other Subs from different Modules
 Sub openAllWorkbooks()
@@ -18,6 +18,7 @@ Sub openAllWorkbooks()
     Dim vFiles, vFile As Variant        'Variables that store temporary names of files that are searched
     Dim testDirectory As String         'Folder path where are keysight measurements
     Dim src As Workbook
+    
 
 '   FUNCTIONAL PART
     
@@ -26,6 +27,9 @@ Sub openAllWorkbooks()
     
     vFiles = enumerateFiles(testDirectory, "csv")
     'It calls a  function required to go through all subfolders to files with csv extension
+        
+'If any error occurs go to errorMsg
+On Error GoTo errorMsg
     
     For Each vFile In vFiles
         
@@ -65,11 +69,15 @@ Sub openAllWorkbooks()
     
     MsgBox "Program finished with success.", vbOKOnly
     'Indicates that program finished its job and there was no error
+    Exit Sub
+    
+errorMsg:
+    MsgBox "Program finished with Error!" & vbNewLine & Err.Description
+    'Indicates that program finished with error and displays message
 
 End Sub
 
 ' Function that searches through folders and subfolders
-
 Public Function enumerateFiles(sDirectory As String, _
             Optional sFileSpec As String = "*", _
             Optional InclSubFolders As Boolean = True) As Variant
@@ -81,7 +89,6 @@ Public Function enumerateFiles(sDirectory As String, _
 End Function
 
 ' Function that speeds up code
-
 Public Function ApplicationOptimization(BOOLEAN_TRIGGER As Boolean)
     With Application
         Select Case BOOLEAN_TRIGGER
