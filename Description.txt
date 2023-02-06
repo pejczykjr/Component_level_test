@@ -1,0 +1,102 @@
+Table of contents
+================================================
+
+1. How to save Keysight files (name, format)?
+2. What is the purpose of this script?
+3. How does the script work? What does it actually do?
+4. How is it implemented?
+5. What are we getting on the output?
+6. How to use this program?
+7. Information about formulas and S-parameters.
+
+================================================
+
+1. Files we want to convert need to be saved with .csv extension. 
+   The name of files required for script to work:
+	
+a) Insertion Loss
+	Name must contain "il" (short for insertion loss) and full colour of pair ("blue", "orange", "green", "brown").
+	Both has to be separated e.g. with space or dash. Capitalization doesn't matter.
+
+b) NEXT Forward
+	Name must contain "next", indicator "fw" (short for forward) and full colour of pair ("blue", "orange", "green", "brown").
+	Each of them has to be separated e.g. with space or dash. Capitalization doesn't matter.
+
+c) NEXT Reverse
+	Name must contain "next", indicator "rev" (short for reverse) and full colour of pair ("blue", "orange", "green", "brown").
+	Each of them has to be separated e.g. with space or dash. Capitalization doesn't matter.
+
+d) Return Loss Forward
+	Name must contain "rl" (short for return loss) and indicator "fw" (short for forward).
+	Both has to be separated e.g. with space or dash. Capitalization doesn't matter.
+
+d) Return Loss Reverse
+	Name must contain "rl" (short for return loss) and indicator "rev" (short for reverse).
+	Both has to be separated e.g. with space or dash. Capitalization doesn't matter.
+
+2. This script is used to convert data with measurements from Keysight P9382B. It saves .csv files as .xlsx files. Program is designed for measurements conducted on balun adapter.
+
+3. The script looks for files with .csv extension, then checks if it contains any of "il", "rl", "next" in its name. When succesfully keeps the desired file, it saves it with .xlsx extension under the same name. After these operations script finds "Freq(Hz)" header, selects used range starting from this cell and moves everything to A1 cell, which is begining of the spreadsheet. Once it's done, redundant measurements are deleted. What is more, depending on measurement type there are added particular category limits (a user chooses them at first pop-up window), as also calculated margins for each measurement. Last two elements are table with worst margins and chart - they are created when everything is sorted out. In table are included: pair / configuration (Pair 1,2 Orange / Blue to Orange), freqency of worst margin, worst margin. On chart there are placed measurements and limits on y-axis and frequency on x-axis.
+
+4. The whole code is written with usage of Subs. There is Main one which calls rest of them. Some procedures are separated into different Modules. There exist two functions responsible for searching through files and doing background staff (turns of useless excel operations). Usually Subs pass arguments by value, but it happens to pass arguments by reference a few times too. At the begining in each Module there appear Option Explicit headers, added to force to specify variable type. Besides modules, there is one user form used for test category pop-up window.
+
+5. On the output a user gets file with .xlsx extension containing all necessary elements to create a report which includes:
+	- measurements related with type of measurement, 
+	- limits for them, 
+	- calculated margins,
+	- table with worst margin,
+	- chart with measurements and limit on it.
+
+6. To run this program you first need to open the main spreadsheet with macros and click run button. There will pop out window with option to choose test category: "CAT5E", "CAT6" and "CAT6A". As the next step, in a folder dialog you will be able to pick directory where your measurements with .csv files are and later on where you want to save your output data. Lastly, when everything is done and there was no error, you will see message informing you about test being finished. If you don't own the spreadsheet, it is possible to import each file to excel spreadsheet. First step you need to do is open developer tab, then go to visual basic. Click on left bar and choose import file.
+
+7. 
+How pairs are described?
+------------------------
+	- Orange: Pair 1-2
+	- Green: Pair 3-6
+	- Blue: Pair 4-5
+	- Brown: Pair 7-8
+
+How S-parameters are defined?
+-----------------------------
+a) Insertion Loss
+	- blue S21
+	- orange S21
+	- green S21
+	- brown S21
+
+b) Next
+Forward:
+	- blue->orange S12, blue->green S13, blue->brown S14 	
+	- orange->blue S21, orange->green S23, orange->brown S24
+	- green->blue S31, green->orange S32, green->brown S34
+	- brown->blue S41, brown->orange S42, brown->green S43
+
+c) Return Loss
+Forward: 
+	- blue S11 
+	- orange S22
+	- green S33
+	- brown S44
+Reverse: 
+	- blue S11 
+	- brown S22
+	- green S33
+	- orange S44
+
+What formulas are used for category type? (f is frequency)
+----------------------------------------------------------
+C5e
+ilFormula = "=(1.967*SQRT(f)+0.023*f+0.05/SQRT(f))"
+nextFormula = "=-(35.3-15*LOG10(f/100))"
+rlFormula = "=-IF(AND(f>=1,f<10),20+5*LOG10(f),IF(AND(f>=10,f<20), 25, 25-7*LOG10(f/20)))"
+
+C6
+ilFormula = "=(1.808*SQRT(f)+0.017*f+0.2/SQRT(f))"
+nextFormula = "=-(44.3-15*LOG10(f/100))"
+rlFormula = "=-IF(AND(f>=1,f<10),20+5*LOG10(f),IF(AND(f>=10,f<20), 25, 25-7*LOG10(f/20)))"
+
+C6A
+ilFormula = "=(1.82*SQRT(f)+0.0091*f+0.25/SQRT(f))"
+nextFormula = "=-(44.3-15*LOG10(f/100))"
+rlFormula = "=-IF(AND(f>=1,f<10),20+5*LOG10(f),IF(AND(f>=10,f<20), 25, 25-7*LOG10(f/20)))"
